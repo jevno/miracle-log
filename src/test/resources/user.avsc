@@ -1,0 +1,20 @@
+[{"type": "record",
+ "name": "user",
+ "namespace" : "avro",
+ "fields": [
+     {"name": "name", "type": "string"},
+     {"name": "favoriteNumber",  "type": ["int", "null"]},
+     {"name": "favoriteColor", "type": ["string", "null"]}
+ ]
+},
+{"type": "record",
+ "name": "product",
+ "namespace" : "avro",
+ "fields": [
+         {"name": "productSeries", "type": "string"},
+         {"name": "productName", "type": "string"},
+         {"name": "tags", "type": "string"},
+         {"name":"desc_model","type":"string"},
+         {"name":"desc_price","type":"float"}
+     ]
+}]
