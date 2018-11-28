@@ -1,23 +1,23 @@
 ## 原理及背景介绍
-  melot-log对当下流行的日志框架进行了调研比较，最终确定使用log4j2，并在此基础上进行展实现。主要因有以下两点：
+  miracle-log对当下流行的日志框架进行了调研比较，最终确定使用log4j2，并在此基础上进行展实现。主要因有以下两点：
 1. log4j2性能及易用性方面都对log4j进行了很大的改进与logback不相上下；
 2. 我们原先大部分框架都默认使用了log4j,log4j2提供了对log4j的兼容实现包，这样框架版本更新过程中更容易平滑过渡。
 
-## melot-log扩展支持的新feature
+## miracle-log扩展支持的新feature
 - 新增CatAppender,默认对接CAT，ERROR级别日志直接上发CAT监控系统
 - 新增MqBusinessAppender，业务关键指标埋点直接通过MQ上发到大数据中心
 - 新增MsgIdPatternConverter，业务日志打印过程中，通过日志格式配置y%，增加该跳日志对应的CAT消息数的MsgId，可以实现日志跟CAT的精准对接
 
-## melot-log接入方式
+## miracle-log接入方式
 
 ### 普通jar包接入
 当前可用版本为1.0.2
 
 ```
 <dependency>
-    <groupId>com.melot.common</groupId>
-    <artifactId>melot-log</artifactId>
-    <version>1.0.2</version>
+    <groupId>com.miracle.common</groupId>
+    <artifactId>miracle-log</artifactId>
+    <version>1.0.4</version>
 </dependency>
 ```
 ps:这里注意由于很多框架包及第三方包会间接引入log4j，这样会导致jar包冲突，从而引起日志打印的混乱，故这里需要把所有log4j依赖exclude掉。我们这里提供一种解决方案是为每个要exclude的jar构建一个虚假的ghost版本，然后将这个ghost版本依赖添加到当前项目中或者parent pom中，这样根据maven依赖的最短路径优先原则，ghost版本会默认生效，但其本身没有任何实现，从而间接达到exclude掉jar包的目的。如下所示：
@@ -39,21 +39,21 @@ ps:这里注意由于很多框架包及第三方包会间接引入log4j，这样
 
 
 ### springboot版本管理器接入
-如果使用springboot框架的话，直接使用我们提供的框架版本控制器1.2.1版本以上即可，项目中再包含一个无版本的melot-log依赖即可
+如果使用springboot框架的话，直接使用我们提供的框架版本控制器1.2.1版本以上即可，项目中再包含一个无版本的miracle-log依赖即可
 
 ```
 
 <dependency>
-    <groupId>com.melot.common</groupId>
-    <artifactId>melot-log</artifactId>
+    <groupId>com.miracle.common</groupId>
+    <artifactId>miracle-log</artifactId>
 </dependency>
 
 <dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.melot</groupId>
-				<artifactId>melot-common-dependencies</artifactId>
-				<version>${melot.common.dependencies.version}</version>
+				<groupId>com.miracle</groupId>
+				<artifactId>miracle-common-dependencies</artifactId>
+				<version>${miracle.common.dependencies.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -69,8 +69,8 @@ ps:这里注意由于很多框架包及第三方包会间接引入log4j，这样
 
 ```
 
-## melot-log配置文件示例
-melot-log配置兼容log4j2的配置，只需注意我们扩展的几个新feature配置即可，如CatAppender，MqBusinessAppender， %y
+## miracle-log配置文件示例
+miracle-log配置兼容log4j2的配置，只需注意我们扩展的几个新feature配置即可，如CatAppender，MqBusinessAppender， %y
 log4j2.xml 样例如下：
 
 ```
@@ -131,11 +131,11 @@ log4j2.xml 样例如下：
     </Loggers>
 
 ```
-## melot-log程序中应用
+## miracle-log程序中应用
 ### 创建新的Logger
 
 ```
-KkLogger kklog = KkLogger.getLogger(Main.class);
+MiracleLogger logger = MiracleLogger.getLogger(Main.class);
 ```
 ps：如不需要业务指标埋点功能，那么可以直接使用log4j2默认方法或slf4j来创建logger
 
@@ -191,22 +191,22 @@ public void business(String avroType, Map<String, Object> kvMap)
 埋点代码如下：
 
 ```
-KkLogger kklog = KkLogger.getLogger(Main.class);
+MiracleLogger logger = MiracleLogger.getLogger(Main.class);
 
-kklog.business("product",
+logger.business("product",
         "productSeries={},productName={},tags={},desc_model={},desc_price={}",
         "aaa", "bbb", new String[]{"aa", "bb"}, "model", 20.0f);
 
 ProductModel model1 = new ProductModel();
 model1.setModel("xmodel");
 model1.setPrice(30.0f);
-kklog.business("product",new String[]{"productSeries", "productName", "tags", "desc"},
+logger.business("product",new String[]{"productSeries", "productName", "tags", "desc"},
         new Object[]{"ccc", "ddd", new String[]{"aa", "bb"}, model1});
 
 Map<String, Object> modelAttrs = Maps.newHashMap();
 modelAttrs.put("model", "ymodel");
 modelAttrs.put("price", 100.0f);
-kklog.business("product",new String[]{"productSeries", "productName", "tags", "desc"},
+logger.business("product",new String[]{"productSeries", "productName", "tags", "desc"},
         new Object[]{"ccc", "ddd", new String[]{"aa", "bb"}, modelAttrs});
 ```
 
